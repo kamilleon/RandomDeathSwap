@@ -18,9 +18,19 @@ public class DeathSwapCommand {
 	@Command(name = "start", desc = "Elindítja a játékot.")
 	@Require("randomdeathswap.start")
 	public void start(@Sender CommandSender sender) {
+		if (gameData.isRunning()) {
+			sender.sendMessage(RandomDeathSwap.getInstance().getConfigJson().getMessage("alreadyRunning"));
+			return;
+		}
+
+		if (Bukkit.getOnlinePlayers().size() < 2) {
+			sender.sendMessage(RandomDeathSwap.getInstance().getConfigJson().getMessage("notEnoughPlayers"));
+			return;
+		}
+
 		gameData.start();
 
-		Bukkit.broadcastMessage(IridiumColorAPI.process(RandomDeathSwap.getInstance().getConfigJson().getPrefix() + " <SOLID:77FF33>A játék el lett indítva!"));
+		Bukkit.broadcastMessage(RandomDeathSwap.getInstance().getConfigJson().getMessage("gameStart"));
 		for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
 			onlinePlayer.playSound(onlinePlayer.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
 		}
@@ -29,9 +39,14 @@ public class DeathSwapCommand {
 	@Command(name = "stop", desc = "Leállítja a játékot.")
 	@Require("randomdeathswap.stop")
 	public void stop(@Sender CommandSender sender) {
+		if (!gameData.isRunning()) {
+			sender.sendMessage(RandomDeathSwap.getInstance().getConfigJson().getMessage("notRunning"));
+			return;
+		}
+
 		gameData.stop();
 
-		Bukkit.broadcastMessage(IridiumColorAPI.process(RandomDeathSwap.getInstance().getConfigJson().getPrefix() + " <SOLID:E52B50>A játék le lett állítva!"));
+		Bukkit.broadcastMessage(RandomDeathSwap.getInstance().getConfigJson().getMessage("gameEnd"));
 		for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
 			onlinePlayer.playSound(onlinePlayer.getLocation(), Sound.BLOCK_AMETHYST_BLOCK_RESONATE, 1, 0.5f);
 		}
@@ -43,6 +58,6 @@ public class DeathSwapCommand {
 		RandomDeathSwap.getInstance().unloadConfigs();
 		RandomDeathSwap.getInstance().loadConfigs();
 
-		sender.sendMessage(IridiumColorAPI.process("<SOLID:77FF33>A konfigurációs fájlok újratöltve!"));
+		sender.sendMessage(RandomDeathSwap.getInstance().getConfigJson().getMessage("reload"));
 	}
 }

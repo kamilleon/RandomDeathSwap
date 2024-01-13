@@ -30,11 +30,11 @@ public class GameListener implements Listener {
 
 		gameData.getAlivePlayers().remove(e.getEntity().getUniqueId());
 
-		player.spigot().respawn();
-		player.sendTitle(IridiumColorAPI.process("<SOLID:FF2A00>§lMeghaltál"), "§fA játékban maradt játékosok: §c" + gameData.getAlivePlayers().size());
-
 		Bukkit.getScheduler().runTaskLater(RandomDeathSwap.getInstance(), () -> {
+			player.spigot().respawn();
+
 			player.setGameMode(GameMode.SPECTATOR);
+			player.sendTitle(RandomDeathSwap.getInstance().getConfigJson().getMessage("title"), RandomDeathSwap.getInstance().getConfigJson().getMessage("subtitle", gameData.getAlivePlayers().size()));
 
 			Player alivePlayer = Bukkit.getPlayer(gameData.getAlivePlayers().get(0));
 			player.teleport(alivePlayer.getLocation());
@@ -43,20 +43,16 @@ public class GameListener implements Listener {
 
 	@EventHandler
 	public void onDamage(EntityDamageByEntityEvent e) {
-		if (!gameData.isRunning()) {
-			return;
-		}
+		if (e.isCancelled()) return;
+		if (!RandomDeathSwap.getInstance().getConfigJson().isPvp()) return;
 
-		if (!(e.getEntity() instanceof Player player)) {
-			return;
-		}
+		if (!gameData.isRunning()) return;
+
+		if (!(e.getEntity() instanceof Player player)) return;
+		if (!gameData.getAlivePlayers().contains(player.getUniqueId())) return;
 
 		if (gameData.isSwapping()) {
 			e.setCancelled(true);
-			return;
-		}
-
-		if (!gameData.getAlivePlayers().contains(player.getUniqueId())) {
 			return;
 		}
 
@@ -70,14 +66,14 @@ public class GameListener implements Listener {
 			}
 
 			e.setCancelled(true);
-			damager.sendMessage(IridiumColorAPI.process("&cNem üthetsz meg a játékosokat!"));
+			damager.sendMessage(RandomDeathSwap.getInstance().getConfigJson().getMessage("noPvP"));
 		}
 	}
 
 	@EventHandler
 	public void onJoin(AsyncPlayerPreLoginEvent e) {
 		if (gameData.isRunning()) {
-			e.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, IridiumColorAPI.process("&cA játék már elkezdődött!"));
+			e.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, RandomDeathSwap.getInstance().getConfigJson().getMessage("gameRunning"));
 		}
 	}
 }

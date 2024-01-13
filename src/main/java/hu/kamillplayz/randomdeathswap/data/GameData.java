@@ -1,6 +1,5 @@
 package hu.kamillplayz.randomdeathswap.data;
 
-import com.iridium.iridiumcolorapi.IridiumColorAPI;
 import hu.kamillplayz.randomdeathswap.RandomDeathSwap;
 import lombok.Getter;
 import lombok.Setter;
@@ -10,6 +9,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
+import org.bukkit.advancement.Advancement;
+import org.bukkit.advancement.AdvancementProgress;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
@@ -39,6 +40,10 @@ public class GameData {
 	public void start() {
 		isRunning = true;
 
+		Location spawnLocation = Bukkit.getWorlds().get(0).getSpawnLocation();
+		spawnLocation.setX(spawnLocation.getX() + (new Random().nextInt(1000) - 500));
+		spawnLocation.setZ(spawnLocation.getZ() + (new Random().nextInt(1000) - 500));
+
 		Bukkit.getOnlinePlayers().forEach(player -> {
 			alivePlayers.add(player.getUniqueId());
 			player.setGameMode(org.bukkit.GameMode.SURVIVAL);
@@ -49,17 +54,35 @@ public class GameData {
 			player.setMaxHealth(20);
 			player.setHealth(20);
 			player.setFoodLevel(20);
+
+			Iterator<Advancement> advancementIterator = Bukkit.advancementIterator();
+			while (advancementIterator.hasNext()) {
+				Advancement advancement = advancementIterator.next();
+				AdvancementProgress advancementProgress = player.getAdvancementProgress(advancement);
+				for (String criteria : advancementProgress.getAwardedCriteria()) {
+					advancementProgress.revokeCriteria(criteria);
+				}
+			}
+
+			Location spreadLocation = spawnLocation.clone();
+			spreadLocation.setX(spreadLocation.getX() + (new Random().nextInt(250) - 125));
+			spreadLocation.setZ(spreadLocation.getZ() + (new Random().nextInt(250) - 125));
+			spreadLocation.setY(spreadLocation.getWorld().getHighestBlockYAt(spreadLocation)+1);
+
+			player.teleport(spreadLocation);
 		});
 
 		newSwap();
 
 		if (randomItemTask != null) randomItemTask.cancel();
-		randomItemTask = startRandomItemTask();
+		if (configJson.isRandomItems()) {
+			randomItemTask = startRandomItemTask();
+		}
 	}
 
 	private void newSwap() {
-		maxTime = new Random().nextInt(180);
-		maxTime = Math.max(maxTime, 60);
+		maxTime = new Random().nextInt(configJson.getMaxSwapTime());
+		maxTime = Math.max(maxTime, configJson.getMinSwapTime());
 
 		time = 0;
 
@@ -93,19 +116,21 @@ public class GameData {
 				String friendlyName = randomItem.getType().name().toLowerCase().replace("_", " ");
 				friendlyName = friendlyName.substring(0, 1).toUpperCase() + friendlyName.substring(1);
 
-				String message = IridiumColorAPI.process("<SOLID:77FF33>Kaptál " + amount + "x " + friendlyName + " tárgyat.");
+				String message = configJson.getMessage("randomItem", amount, friendlyName);
 				player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(message));
 
 				player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.85f, 1);
 			}
-		}, 20 * 10L, 20 * 10L);
+		}, 20L * configJson.getRandomItemsInterval(), 20L * configJson.getRandomItemsInterval());
 	}
 
 	private BukkitTask startCountdown() {
 
-		Bukkit.getOnlinePlayers().forEach(player -> {
-			if (player.getMaxHealth() > 2) player.setMaxHealth(20 - (swaps * 2));
-		});
+		if (configJson.isDecreaseHealth()) {
+			Bukkit.getOnlinePlayers().forEach(player -> {
+				if (player.getMaxHealth() > 2) player.setMaxHealth(20 - (swaps * 2));
+			});
+		}
 
 		return Bukkit.getScheduler().runTaskTimer(RandomDeathSwap.getInstance(), () -> {
 			if (!isRunning) {
@@ -113,8 +138,8 @@ public class GameData {
 			}
 
 			if (alivePlayers.size() <= 1) {
-				Bukkit.broadcastMessage(IridiumColorAPI.process(configJson.getPrefix() + " <SOLID:F0F8FF>A játék véget ért!"));
-				Bukkit.broadcastMessage(IridiumColorAPI.process(" &8➥ &fGyőztes: <SOLID:77FF33>" + Bukkit.getPlayer(alivePlayers.get(0)).getName()));
+				Bukkit.broadcastMessage(configJson.getMessage("gameEndWinner"));
+				Bukkit.broadcastMessage(configJson.getMessage("winner", Bukkit.getPlayer(alivePlayers.get(0)).getName()));
 
 				Bukkit.getOnlinePlayers().forEach(player -> {
 					float pitch = (float) (0.85 + Math.random() * 0.3);
@@ -139,7 +164,7 @@ public class GameData {
 
 				for (int i = 0; i < alivePlayers1.size(); i++) {
 					Bukkit.getPlayer(alivePlayers1.get(i)).teleport(locations.get((i + 1) % locations.size()));
-					Bukkit.getPlayer(alivePlayers1.get(i)).sendMessage(IridiumColorAPI.process(configJson.getPrefix() + " <SOLID:F0F8FF>Helyet cseréltél §6" + Bukkit.getPlayer(alivePlayers1.get((i + 1) % locations.size())).getName() + " <SOLID:F0F8FF>játékossal!"));
+					Bukkit.getPlayer(alivePlayers1.get(i)).sendMessage(configJson.getMessage("swapped", Bukkit.getPlayer(alivePlayers1.get((i + 1) % locations.size())).getName()));
 				}
 
 				newSwap();
@@ -148,7 +173,7 @@ public class GameData {
 
 			if (bossBar != null) bossBar.removeAll();
 			if (maxTime - 10 <= time) {
-				bossBar = Bukkit.createBossBar(IridiumColorAPI.process("<SOLID:E32636>A következő csere " + (maxTime - time) + " másodperc múlva lesz!"), BarColor.RED, BarStyle.SOLID);
+				bossBar = Bukkit.createBossBar(configJson.getMessage("nextSwapSoon", (maxTime - time)), BarColor.RED, BarStyle.SOLID);
 				bossBar.setProgress((double) (maxTime - time) / 10);
 
 				Bukkit.getOnlinePlayers().forEach(player -> {
@@ -157,12 +182,14 @@ public class GameData {
 					player.playSound(player.getLocation(), Sound.ENTITY_WARDEN_HEARTBEAT, 1.5f, pitch);
 				});
 			} else {
-				String remainingTime = (maxTime - time) + " mp";
-				if (!RandomDeathSwap.getInstance().getConfigJson().isShowRemainingTime()) {
+				String remainingTime;
+				if (RandomDeathSwap.getInstance().getConfigJson().isShowRemainingTime()) {
+					remainingTime = (maxTime - time) + configJson.getMessage("seconds");
+				} else {
 					remainingTime = "???";
 				}
 
-				bossBar = Bukkit.createBossBar(IridiumColorAPI.process("<SOLID:77FF33>[Stabil] <SOLID:F0F8FF>Következő csere " + remainingTime), BarColor.GREEN, BarStyle.SOLID);
+				bossBar = Bukkit.createBossBar(configJson.getMessage("nextSwap", remainingTime), BarColor.GREEN, BarStyle.SOLID);
 				bossBar.setProgress(1);
 			}
 
