@@ -44,7 +44,7 @@ public class ConfigJson {
 		messages.put("gameEndWinner", "%prefix% <SOLID:F0F8FF>A játék véget ért!");
 		messages.put("winner", " &8➥ &fGyőztes: <SOLID:77FF33>%s");
 		messages.put("randomItem", "<SOLID:77FF33>Kaptál %dx %s tárgyat.");
-		messages.put("swapped", "<SOLID:F0F8FF>Helyet cseréltél §6%s <SOLID:F0F8FF>játékossal!");
+		messages.put("swapped", "%prefix% <SOLID:F0F8FF>Helyet cseréltél §6%s <SOLID:F0F8FF>játékossal!");
 		messages.put("nextSwapSoon", "<SOLID:E32636>A következő csere %d másodperc múlva!");
 		messages.put("nextSwap", "<SOLID:77FF33>[Biztonságos] <SOLID:F0F8FF>Következő csere: %s");
 		messages.put("seconds", " mp");
