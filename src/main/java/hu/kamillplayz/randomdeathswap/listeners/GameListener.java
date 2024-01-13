@@ -34,7 +34,7 @@ public class GameListener implements Listener {
 			player.spigot().respawn();
 
 			player.setGameMode(GameMode.SPECTATOR);
-			player.sendTitle(RandomDeathSwap.getInstance().getConfigJson().getMessage("title"), RandomDeathSwap.getInstance().getConfigJson().getMessage("subtitle", gameData.getAlivePlayers().size()));
+			player.sendTitle(RandomDeathSwap.getInstance().getConfigJson().getMessage("playersLeftTitle"), RandomDeathSwap.getInstance().getConfigJson().getMessage("playersLeftSubtitle", gameData.getAlivePlayers().size()));
 
 			Player alivePlayer = Bukkit.getPlayer(gameData.getAlivePlayers().get(0));
 			player.teleport(alivePlayer.getLocation());

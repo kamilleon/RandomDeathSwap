@@ -50,7 +50,7 @@ public class ConfigJson {
 		messages.put("seconds", " mp");
 		messages.put("reload", "%prefix% <SOLID:77FF33>A konfigurációs fájlok újratöltve!");
 		messages.put("playersLeftTitle", "<SOLID:FF2A00>§lMeghaltál");
-		messages.put("playersLeftSubtitle", "&fA játékban maradt játékosok: &c%s");
+		messages.put("playersLeftSubtitle", "&fA játékban maradt játékosok: &c%d");
 		messages.put("noPvP", "&cNem üthetsz meg a játékosokat!");
 		messages.put("notEnoughPlayers", "%prefix% <SOLID:E32636>Nincs elég játékos a játék elindításához! &7(Minimum 2)");
 		messages.put("alreadyRunning", "%prefix% <SOLID:E32636>A játék már el lett indítva!");
