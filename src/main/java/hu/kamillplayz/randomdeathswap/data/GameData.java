@@ -41,8 +41,18 @@ public class GameData {
 		isRunning = true;
 
 		Location spawnLocation = Bukkit.getWorlds().get(0).getSpawnLocation();
-		spawnLocation.setX(spawnLocation.getX() + (new Random().nextInt(1000) - 500));
-		spawnLocation.setZ(spawnLocation.getZ() + (new Random().nextInt(1000) - 500));
+
+		int minDistance = configJson.getMinTeleportDistance();
+		int maxDistance = configJson.getMaxTeleportDistance();
+
+		boolean isPositiveX = new Random().nextBoolean();
+		spawnLocation.setX(spawnLocation.getX() + (isPositiveX ? 1 : -1) * (Math.max(new Random().nextInt(maxDistance), minDistance)));
+
+		boolean isPositiveZ = new Random().nextBoolean();
+		spawnLocation.setZ(spawnLocation.getZ() + (isPositiveZ ? 1 : -1) * (Math.max(new Random().nextInt(maxDistance), minDistance)));
+
+		int minSpread = configJson.getMinSpreadDistance();
+		int maxSpread = configJson.getMaxSpreadDistance();
 
 		Bukkit.getOnlinePlayers().forEach(player -> {
 			alivePlayers.add(player.getUniqueId());
@@ -65,8 +75,13 @@ public class GameData {
 			}
 
 			Location spreadLocation = spawnLocation.clone();
-			spreadLocation.setX(spreadLocation.getX() + (new Random().nextInt(250) - 125));
-			spreadLocation.setZ(spreadLocation.getZ() + (new Random().nextInt(250) - 125));
+
+			boolean isPositiveXSpread = new Random().nextBoolean();
+			spreadLocation.setX(spreadLocation.getX() + (isPositiveXSpread ? 1 : -1) * (Math.max(new Random().nextInt(maxSpread), minSpread)));
+
+			boolean isPositiveZSpread = new Random().nextBoolean();
+			spreadLocation.setZ(spreadLocation.getZ() + (isPositiveZSpread ? 1 : -1) * (Math.max(new Random().nextInt(maxSpread), minSpread)));
+
 			spreadLocation.setY(spreadLocation.getWorld().getHighestBlockYAt(spreadLocation)+1);
 
 			player.teleport(spreadLocation);

@@ -13,6 +13,10 @@ import java.util.Map;
 @NoArgsConstructor
 public class ConfigJson {
 
+	private int minTeleportDistance = 500;
+	private int maxTeleportDistance = 1000;
+	private int minSpreadDistance = 125;
+	private int maxSpreadDistance = 250;
 	private int minSwapTime = 60;
 	private int maxSwapTime = 180;
 	private boolean showRemainingTime = false;
