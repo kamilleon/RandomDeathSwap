@@ -24,7 +24,7 @@ public class ConfigJson {
 	private int randomItemsInterval = 10;
 	private boolean decreaseHealth = true;
 	private boolean pvp = false;
-	private int maxItemAmount = 64;
+	private int maxItemAmount = 16;
 
 	private Map<String, String> messages = getDefaultMessages();
 
