@@ -123,7 +123,7 @@ public class GameData {
 				Player player = Bukkit.getPlayer(alivePlayer);
 
 				ItemStack randomItem = new ItemStack(Material.values()[new Random().nextInt(Material.values().length)], 1);
-				int amount = new Random().nextInt(8) + 1;
+				int amount = Math.min(new Random().nextInt(configJson.getMaxItemAmount()) + 1, randomItem.getMaxStackSize());
 				randomItem.setAmount(amount);
 
 				player.getInventory().addItem(randomItem);
